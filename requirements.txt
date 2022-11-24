@@ -3,7 +3,6 @@ keras
 matplotlib
 seaborn
 Pillow
-tensorflow
 pydicom
 opencv-python
 protobuf==3.9.2
