@@ -4,4 +4,5 @@ matplotlib
 seaborn
 Pillow
 pydicom
+opencv-python-headless
 protobuf==3.9.2
