@@ -75,7 +75,7 @@ def process_dataset():
     return pred_dataset(ds_train, model)
 
 def get_mgmt_state(state):
-    return '### **De acuerdo al modelo el paciente cuenta con una probabilidad  de '+ str(state) + ' de tener la enzima MGMT**'
+    return '### **De acuerdo al modelo el paciente cuenta con una probabilidad  de '+ str(round(state, 3)) + ' de tener la enzima MGMT**'
 
 
 def st_directory_picker(initial_path=Path()):
