@@ -66,7 +66,7 @@ def pred_dataset(ds_train, model):
 
     for images in ds_train:
         y_pred.extend(model.predict(
-            images, verbose=0).round().astype(int).tolist())
+            images, verbose=0).astype(float).tolist())
     return y_pred
 
 
@@ -75,10 +75,7 @@ def process_dataset():
     return pred_dataset(ds_train, model)
 
 def get_mgmt_state(state):
-    if state == 1:
-        return '### **De acuerdo al modelo el paciente cuenta con la enzima MGMT**'
-    else:
-        return '### **De acuerdo al modelo el paciente No cuenta con la enzima MGMT**'
+    return '### **De acuerdo al modelo el paciente cuenta con una probabilidad  de '+ state + ' de tener la enzima MGMT**'
 
 
 def st_directory_picker(initial_path=Path()):
