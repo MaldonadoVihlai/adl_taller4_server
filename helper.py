@@ -30,7 +30,7 @@ def load_dicom_image(path, img_size=constants.SIZE):
     return data
 
 
-def load_dicom_images_3d(scan_id, num_imgs=constants.NUM_IMAGES, img_size=constants.SIZE, mri_type="FLAIR"):
+def load_dicom_images_3d(scan_id, num_imgs=constants.NUM_IMAGES, img_size=constants.SIZE, mri_type="T2w"):
     files = sorted(glob.glob(constants.EXTRACTION_DIRECTORY+f"/{scan_id}/{mri_type}/*.dcm"),
                    key=lambda var: [int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
     middle = len(files)//2
