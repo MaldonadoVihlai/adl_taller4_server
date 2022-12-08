@@ -57,3 +57,20 @@ def display_image_sequence(x_start,y_start,x_end,y_end,no_of_imgs, decoder, st):
         counter += 1
     st.pyplot(fig)
     #plt.show()
+def display_image(x_start,y_start,x_end,y_end,no_of_imgs, decoder, st):
+    x_axis = np.linspace(x_start,x_end,no_of_imgs)
+    y_axis = np.linspace(y_start,y_end,no_of_imgs)
+    print(list(zip(x_axis,y_axis)))
+    
+    x_axis = x_axis[:, np.newaxis]
+    y_axis = y_axis[:, np.newaxis]
+    
+    new_points = np.hstack((x_axis, y_axis))
+    new_images = decoder.predict(new_points)
+    new_images = new_images.reshape(new_images.shape[0], new_images.shape[1], new_images.shape[2])
+    
+
+    counter = 0
+    plt.imshow(new_images[0], cmap='gray')
+    counter += 1
+    st.pyplot(plt)    
