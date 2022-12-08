@@ -12,21 +12,19 @@ import shutil
 
 get_top_page_content(st)
 
-uploaded_zip_file = st.file_uploader("Cargue la carpeta con las imágenes", type='zip')
-if uploaded_zip_file is not None:
-    zf = zipfile.ZipFile(uploaded_zip_file)
-    zf.extractall(constants.EXTRACTION_DIRECTORY)
-    file_name = uploaded_zip_file.name.split('.')[0]    
-    y_pred = process_dataset()
-    print(y_pred)
-    st.markdown('## Predicción :')
-    st.markdown(get_mgmt_state(y_pred[0][0]))
-    shutil.rmtree(constants.EXTRACTION_DIRECTORY+'/')
-    #fig, ax = plt.subplots()
-    #ax  = sns.barplot(y = 'name',x='values', data = y_pred,order = y_pred.sort_values('values',ascending=False).name)
-    #ax.set(xlabel='Confidence %', ylabel='Breed')
+decoder = load_model()
 
-    #st.pyplot(fig)
-    
+#display_image_sequence(x_start,y_start,x_end,y_end,no_of_imgs, decoder)
+#display_image_sequence(0,-3,-2,1,9, decoder, st)
 
 
+with st.form("my_form"):
+    x_start = int(st.number_input("X_inicial", min_value=-4, max_value=3, value=0, step=1))
+    y_start = int(st.number_input("Y_inicial", min_value=-4, max_value=4, value=0, step=1))
+    x_end = int(st.number_input("X_final", min_value=-4, max_value=3, value=0, step=1))
+    y_end = int(st.number_input("Y_final", min_value=-4, max_value=4, value=0, step=1))
+    images_number = int(st.number_input("Número de imágenes", min_value=0, max_value=20, value=5, step=1))
+
+    submitted = st.form_submit_button("Submit")
+    if submitted:
+        display_image_sequence(x_start,y_start,x_end,y_end, images_number, decoder, st)

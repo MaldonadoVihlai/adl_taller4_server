@@ -1,5 +1,4 @@
-Detección del estado de metilación de la enzima MGMT en tumores cerebrales
+Generador de imágenes leatorias:
 
-Proyecto Analisis con Deep Learning 
 
-Datased: https://www.kaggle.com/competitions/rsna-miccai-brain-tumor-radiogenomic-classification/data
+Dataset: https://www.kaggle.com/datasets/zalando-research/fashionmnist

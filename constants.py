@@ -4,4 +4,5 @@ MRI_TYPES = ['FLAIR','T1w','T1wCE','T2w']
 SIZE = 256
 NUM_IMAGES = 64
 BATCH_SIZE = 8
-MODEL = 'best_clasificador_propio_T2w.h5'
+MODEL = 'decoder_model1.h5'
+SCATTERPLOT_IMAGE = 'images/scatterplot.png'

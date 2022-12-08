@@ -3,128 +3,57 @@ import tensorflow as tf
 from pathlib import Path
 from tensorflow.keras.models import load_model
 import streamlit as st
-import constants, keras, re, glob, pydicom, cv2, os
-
+import constants, keras, re, glob, cv2, os
+import matplotlib.pyplot as plt
+from keras.layers import Input, Dense, Conv2DTranspose, Flatten, Reshape
+from keras.models import Model
 
 @st.experimental_singleton()
-def load_model():
-    return keras.models.load_model('model/' + constants.MODEL)
+def load_model(model_path = constants.MODEL):
+    return keras.models.load_model('model/' + model_path)
 
 
 model = load_model()
 
 
 def get_top_page_content(st):
-    st.image(constants.IMAGE_BANNER)
+    #st.image(constants.IMAGE_BANNER)
     st.title(
-        'Detección del estado de metilación de la enzima MGMT en tumores cerebrales')
-    st.markdown('**Nota**: Cargue la carpeta correspondiente a un **único** paciente.\
-         Recuerde que la carpeta debe contener únicamente archivos \
-        dcm.')
+        'Generador de imagenes aleatorio')
+    st.markdown('Asigne los valores con las coordenadas de inicio y fin para las imágenes aleatorias, así como la cantidad de imágenes.')
+    st.image(constants.SCATTERPLOT_IMAGE)
+    st.markdown('**Nota:** Tenga encuenta que: \
+    0: T-shirt/top, 1: Trouser, 2: Pullover, 3: Dress, 4: Coat, 5: Sandal, 6: Shirt, 7: Sneaker, 8: Bag, 9: Ankle boot')
 
+def get_scatter_plot(encoder, X_train_new, y_train):
+    encoded = encoder.predict(X_train_new)
+    plt.figure(figsize=(14,12))
+    plt.scatter(encoded[:,0], encoded[:,1], s=2, c=y_train, cmap='hsv')
+    plt.colorbar()
+    plt.legend(loc="upper left")
+    plt.grid()
+    plt.show()
 
-def load_dicom_image(path, img_size=constants.SIZE):
-    dicom = pydicom.read_file(path)
-    data = dicom.pixel_array
-    data = cv2.resize(data, (img_size, img_size))
-    return data
-
-
-def load_dicom_images_3d(scan_id, num_imgs=constants.NUM_IMAGES, img_size=constants.SIZE, mri_type="T2w"):
-    files = sorted(glob.glob(constants.EXTRACTION_DIRECTORY+f"/{scan_id}/{mri_type}/*.dcm"),
-                   key=lambda var: [int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
-    middle = len(files)//2
-    num_imgs2 = num_imgs//2
-    p1 = max(0, middle - num_imgs2)
-    p2 = min(len(files), middle + num_imgs2)
-    img3d = np.stack([load_dicom_image(f) for f in files[p1:p2]]).T
-    if img3d.shape[-1] < num_imgs:
-        n_zero = np.zeros((img_size, img_size, num_imgs - img3d.shape[-1]))
-        img3d = np.concatenate((img3d,  n_zero), axis=-1)
-    if np.min(img3d) < np.max(img3d):
-        img3d = img3d - np.min(img3d)
-        img3d = img3d / np.max(img3d)
-    return img3d
-
-
-def generator_train():
-    x = load_dicom_images_3d(
-        next(os.walk(constants.EXTRACTION_DIRECTORY))[1][0])
-    yield x
-
-
-def build_dataset():
-    ds_train = tf.data.Dataset.from_generator(generator_train, args=[],
-                                              output_types=tf.int16,
-                                              output_shapes=(constants.SIZE, constants.SIZE, constants.NUM_IMAGES))
-    ds_train = ds_train.batch(constants.BATCH_SIZE)
-    return ds_train
-
-
-def pred_dataset(ds_train, model):
-    y_pred = list()
-
-    for images in ds_train:
-        y_pred.extend(model.predict(
-            images, verbose=0).astype(float).tolist())
-    return y_pred
-
-
-def process_dataset():
-    ds_train = build_dataset()
-    return pred_dataset(ds_train, model)
-
-def get_mgmt_state(state):
-    return '### **De acuerdo al modelo el paciente cuenta con una probabilidad  de '+ str(round(state, 3)) + ' de tener la enzima MGMT**'
-
-
-def st_directory_picker(initial_path=Path()):
-
-    st.markdown("#### Selección de la carpeta")
-
-    if "path" not in st.session_state:
-        st.session_state.path = initial_path.absolute()
-
-    manual_input = st.text_input(
-        "Cargue la carpeta con las imágenes:", st.session_state.path)
-
-    manual_input = Path(manual_input)
-    if manual_input != st.session_state.path:
-        st.session_state.path = manual_input
-        st.experimental_rerun()
-
-    _, col1, col2, col3, _ = st.columns([3, 1, 3, 1, 3])
-
-    with col1:
-        st.markdown("#")
-        if st.button("⬅️") and "path" in st.session_state:
-            st.session_state.path = st.session_state.path.parent
-            st.experimental_rerun()
-
-    with col2:
-        subdirectroies = [
-            f.stem
-            for f in st.session_state.path.iterdir()
-            if f.is_dir()
-            and (not f.stem.startswith(".") and not f.stem.startswith("__"))
-        ]
-        if subdirectroies:
-            st.session_state.new_dir = st.selectbox(
-                "Subdirectorios", sorted(subdirectroies)
-            )
-        else:
-            st.markdown("#")
-            st.markdown(
-                "<font color='#FF0000'>No subdir</font>", unsafe_allow_html=True
-            )
-
-    with col3:
-        if subdirectroies:
-            st.markdown("#")
-            if st.button("➡️") and "path" in st.session_state:
-                st.session_state.path = Path(
-                    st.session_state.path, st.session_state.new_dir
-                )
-                st.experimental_rerun()
-
-    return st.session_state.path
+def display_image_sequence(x_start,y_start,x_end,y_end,no_of_imgs, decoder, st):
+    x_axis = np.linspace(x_start,x_end,no_of_imgs)
+    y_axis = np.linspace(y_start,y_end,no_of_imgs)
+    print(list(zip(x_axis,y_axis)))
+    
+    x_axis = x_axis[:, np.newaxis]
+    y_axis = y_axis[:, np.newaxis]
+    
+    new_points = np.hstack((x_axis, y_axis))
+    new_images = decoder.predict(new_points)
+    new_images = new_images.reshape(new_images.shape[0], new_images.shape[1], new_images.shape[2])
+    
+    # Display some images
+    fig, axes = plt.subplots(ncols=no_of_imgs, sharex=False,
+                             sharey=True, figsize=(20, 7))
+    counter = 0
+    for i in range(no_of_imgs):
+        axes[counter].imshow(new_images[i], cmap='gray')
+        axes[counter].get_xaxis().set_visible(False)
+        axes[counter].get_yaxis().set_visible(False)
+        counter += 1
+    st.pyplot(fig)
+    #plt.show()
